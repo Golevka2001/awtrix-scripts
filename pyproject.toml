@@ -1,0 +1,28 @@
+[project]
+name = "awtrix-scripts"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pyyaml>=6.0",
+    "paho-mqtt>=1.6.0",
+    "requests>=2.25.0",
+    "psutil>=5.8.0",
+    "spotipy>=2.25.2",
+    "pypinyin>=0.55.0",
+    "pykakasi>=2.3.0",
+    "korean-romanizer>=0.28.0",
+    "numpy>=2.2.6",
+    "opencv-python>=4.11.0.86",
+]
+
+[[tool.uv.index]]
+url = "https://mirrors.ustc.edu.cn/pypi/simple"
+default = true
+
+[dependency-groups]
+dev = [
+    "black>=25.11.0",
+    "isort>=7.0.0",
+]

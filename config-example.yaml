@@ -1,0 +1,83 @@
+# 重命名为 config.yaml 并修改以下内容
+
+# MQTT 配置
+mqtt:
+  host: "<<<<< REPLACE_WITH_YOUR_MQTT_HOST >>>>>"
+  port: 1883
+  topic_prefix: "awtrix_8b9a64/custom/" # 不要改 `custom`，前缀和 AWTRIX 保持一致
+  # 如果你的 MQTT 服务器不需要认证，可以留空或删除以下两行
+  username: "<<<<< REPLACE_WITH_YOUR_MQTT_USERNAME >>>>>"
+  password: "<<<<< REPLACE_WITH_YOUR_MQTT_PASSWORD >>>>>"
+
+# 应用配置
+app:
+  allowed_hours: # 运行时间段（24小时制）
+    - [0, 1]
+    - [8, 24]
+  main_loop_interval: 20 #主循环间隔（秒），多久发送一次数据到 AWTRIX，与任务更新间隔无关
+  task_timeout: 5 # 任务超时时间（秒），超过该时间若任务未返回结果则使用上次结果发送
+  send_interval: 0.5 # 发送间隔（秒），每个任务结果发送到 AWTRIX 之间的间隔时间，可以避免顺序错乱
+  behavior_on_failure: 2 # 任务异常时的行为，0=删除应用，1=使用上次结果，2=显示 Error
+  store_dir: "data" # 本地存储目录，用于缓存任务数据
+
+# 任务配置
+# - enabled：是否启用该任务
+# - priority：优先级（数值越小优先级越高）
+# - interval：数据更新间隔（秒）
+tasks:
+  year_progress:
+    enabled: true
+    priority: 0
+    interval: 3600 # 1小时
+
+  air_quality:
+    enabled: true
+    priority: 10
+    interval: 1200 # 20分钟
+    api_key: "<<<<< REPLACE_WITH_YOUR_API_KEY >>>>>" # 天聚数行 API Key，https://www.tianapi.com/console/
+    area: "北京" # 城市/地区名称，不带“市”字
+
+  bilibili_followers:
+    enabled: true
+    priority: 20
+    interval: 3600 # 1小时
+    uid: "<<<<< REPLACE_WITH_YOUR_UID >>>>>" # https://space.bilibili.com/xxx 的 xxx 部分
+
+  github_followers:
+    enabled: true
+    priority: 30
+    interval: 3600 # 1小时
+    # 推荐使用 GitHub Personal Access Token，以免遇到频率限制，此时不使用 username
+    # 若 token 未设置，则使用 username 获取公开信息
+    token: "<<<<< REPLACE_WITH_YOUR_GITHUB_PERSONAL_ACCESS_TOKEN >>>>>" # GitHub Personal Access Token，https://github.com/settings/personal-access-tokens
+    username: "<<<<< REPLACE_WITH_YOUR_GITHUB_USERNAME >>>>>"
+    draw_avatar: false # 是否用头像缩略图作为图标
+
+  gas_price:
+    enabled: true
+    priority: 40
+    interval: 1200 # 20分钟
+    api_key: "<<<<< REPLACE_WITH_YOUR_API_KEY >>>>>" # 天聚数行 API Key，https://www.tianapi.com/console/
+    province: "北京" # 省份，不带“省”字
+    display_type: "92" # 显示的油品类型：0(#0柴油), 89(#89汽油), 92(#92汽油), 95(#95汽油), 98(#98汽油)
+
+  minecraft_server_status:
+    enabled: true
+    priority: 50
+    interval: 300 # 5分钟
+    server_addr: "<<<<< REPLACE_WITH_YOUR_MINECRAFT_SERVER_ADDRESS >>>>>" # Minecraft 服务器地址
+    java_edition: true # true=Java版, false=基岩版
+
+  spotify_current_playback:
+    enabled: true
+    priority: 60
+    interval: 10 # 10秒
+    # 访问 https://developer.spotify.com/dashboard，创建应用，填写 Redirect URI，勾选 Web API。之后获取 Client ID 和 Client Secret
+    client_id: "<<<<< REPLACE_WITH_YOUR_CLIENT_ID >>>>>"
+    client_secret: "<<<<< REPLACE_WITH_YOUR_CLIENT_SECRET >>>>>"
+    redirect_uri: "http://127.0.0.1:1234" # 与 Spotify 应用设置保持一致
+    auth_cache_file: "spotify_cache.json" # 修改可能会导致需要重新授权
+    show_artist: false # 是否显示艺术家名称
+    track_name_first: true # true=歌曲名 - 艺术家, false=艺术家 - 歌曲名（仅在 show_artist 为 true 时生效）
+    cjk_to_initials: true # 是否将中、日、韩文字转换为拼音首字母，否则显示为空字符
+    draw_album_art: false # 是否用专辑封面缩略图作为图标
