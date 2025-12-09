@@ -7,6 +7,7 @@ import cv2
 import numpy as np
 import pykakasi
 import requests
+from colour import Color
 from korean_romanizer.romanizer import Romanizer as KoreanRomanizer
 from pypinyin import Style, lazy_pinyin
 
@@ -26,17 +27,15 @@ def format_number(num):
     unit_index = 0
     original_num = num
 
-    # 找到合适的单位
+    # Determine appropriate unit
     while num >= divisor and unit_index < len(units) - 1:
         num = num // divisor
         unit_index += 1
 
     unit = units[unit_index]
 
-    if unit_index > 0:  # 有单位的情况
-        # 计算实际值
+    if unit_index > 0:
         actual_value = original_num / (divisor**unit_index)
-
         if actual_value < 10:
             # 1.00 k
             return f"{actual_value:.2f}{unit}"
@@ -47,7 +46,7 @@ def format_number(num):
             # 100 k
             return f"{int(actual_value)}{unit}"
     else:
-        # 无单位，直接返回数字
+        # No unit, return as is
         return str(int(original_num))
 
 
@@ -65,8 +64,7 @@ def requests_post(url, **kwargs):
 
 
 def cjk_to_initials(text: str, separator: str = "") -> str:
-    """
-    Convert each CJK character to its pinyin/romanized initial. Others unchanged.
+    """Convert each CJK character to its pinyin/romanized initial. Others unchanged.
     Args:
         text (str): Input string, may contain CJK characters
         separator (str): Separator between characters
@@ -109,8 +107,7 @@ def cjk_to_initials(text: str, separator: str = "") -> str:
 
 
 def fetch_image_and_convert_to_packed_rgb(url, target_size):
-    """
-    Fetch image from URL, resize, convert to packed RGB format
+    """Fetch image from URL, resize, convert to packed RGB format
     Args:
         url (str): Image URL
         target_size (tuple): (width, height)
@@ -141,8 +138,7 @@ def fetch_image_and_convert_to_packed_rgb(url, target_size):
 
 
 def fetch_image_and_convert_to_base64(url, target_size, image_format="JPG"):
-    """
-    Fetch image from URL, resize, convert to base64 string. Uses persistent cache.
+    """Fetch image from URL, resize, convert to base64 string. Uses persistent cache.
     Args:
         url (str): Image URL
         target_size (tuple): (width, height)
@@ -198,3 +194,17 @@ def fetch_image_and_convert_to_base64(url, target_size, image_format="JPG"):
     except Exception as e:
         print(f"Error fetching or processing image from {url}: {e}")
         return None
+
+
+def color_to_packed_rgb(color_value):
+    """Convert color value to packed RGB integer
+    Args:
+        color_value (Any): Color value (name, hex, etc.)
+    Returns:
+        int: Packed RGB integer
+    """
+    color = Color(color_value)
+    r = int(color.red * 255)
+    g = int(color.green * 255)
+    b = int(color.blue * 255)
+    return r << 16 | g << 8 | b

@@ -53,6 +53,14 @@ tasks:
     username: "<<<<< REPLACE_WITH_YOUR_GITHUB_USERNAME >>>>>"
     draw_avatar: false # 是否用头像缩略图作为图标
 
+  github_contributions:
+    enabled: true
+    priority: 31
+    interval: 3600 # 1小时
+    username: "<<<<< REPLACE_WITH_YOUR_GITHUB_USERNAME >>>>>" # GitHub 用户名
+    rainbow_months: true # true=彩虹色月份标记，false=单一颜色
+    split_by_month: false # 是否按月份分割显示贡献图
+
   gas_price:
     enabled: true
     priority: 40

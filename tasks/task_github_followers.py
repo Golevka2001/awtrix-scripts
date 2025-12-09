@@ -1,5 +1,3 @@
-from urllib.parse import urljoin
-
 from config import config_data
 from helpers import fetch_image_and_convert_to_base64, format_number, requests_get
 
@@ -9,7 +7,7 @@ ICON = "71442"
 ERROR_ICON = ICON
 
 API_URL_WITH_TOKEN = "https://api.github.com/user"  # https://docs.github.com/en/rest/users/users?apiVersion=2022-11-28#get-the-authenticated-user
-API_URL_WITH_USERNAME = "https://api.github.com/users"  # https://docs.github.com/en/rest/users/users?apiVersion=2022-11-28#get-a-user
+API_URL_WITH_USERNAME = "https://api.github.com/users/{username}"  # https://docs.github.com/en/rest/users/users?apiVersion=2022-11-28#get-a-user
 
 APP_NAME = "github_followers"
 DEFAULT_INTERVAL = 3600
@@ -40,7 +38,7 @@ class GithubFollowersTask(BaseTask):
                 "X-GitHub-Api-Version": "2022-11-28",
             }
         else:
-            url = urljoin(API_URL_WITH_USERNAME + "/", username)
+            url = API_URL_WITH_USERNAME.format(username=username)
             headers = {}
 
         response = requests_get(url, headers=headers)

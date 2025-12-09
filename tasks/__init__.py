@@ -1,6 +1,7 @@
 from .task_air_quality import AirQualityTask
 from .task_bilibili_followers import BilibiliFollowersTask
 from .task_gas_price import GasPriceTask
+from .task_github_contributions import GitHubContributionsTask
 from .task_github_followers import GithubFollowersTask
 from .task_minecraft_server_status import MinecraftServerStatusTask
 from .task_spotify_current_playback import SpotifyCurrentPlaybackTask
@@ -12,6 +13,7 @@ def load_tasks():
         AirQualityTask(),
         BilibiliFollowersTask(),
         GasPriceTask(),
+        GitHubContributionsTask(),
         GithubFollowersTask(),
         MinecraftServerStatusTask(),
         SpotifyCurrentPlaybackTask(),
