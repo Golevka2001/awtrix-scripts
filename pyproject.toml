@@ -20,10 +20,6 @@ dependencies = [
     "colour>=0.1.5",
 ]
 
-[[tool.uv.index]]
-url = "https://mirrors.ustc.edu.cn/pypi/simple"
-default = true
-
 [dependency-groups]
 dev = [
     "black>=25.11.0",
