@@ -28,7 +28,7 @@ tasks:
   year_progress:
     enabled: true
     priority: 0
-    interval: 3600 # 1小时
+    interval: 1800 # 30分钟
 
   air_quality:
     enabled: true
