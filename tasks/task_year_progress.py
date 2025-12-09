@@ -9,7 +9,7 @@ PROGRESS_BG_COLOR = "#666666"
 ERROR_ICON = ICON
 
 APP_NAME = "year_progress"
-DEFAULT_INTERVAL = 3600
+DEFAULT_INTERVAL = 1800
 
 
 class YearProgressTask(BaseTask):

@@ -28,7 +28,7 @@ tasks:
   year_progress:
     enabled: true
     priority: 0
-    interval: 3600 # 1 hour
+    interval: 1800 # 30 minutes
 
   air_quality:
     enabled: true
