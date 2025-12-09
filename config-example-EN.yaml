@@ -35,7 +35,7 @@ tasks:
     priority: 10
     interval: 1200 # 20 minutes
     api_key: "<<<<< REPLACE_WITH_YOUR_API_KEY >>>>>" # Tianapi API Key, https://www.tianapi.com/console/
-    area: "Beijing" # City/area name, do not include "City"
+    area: "北京"
 
   bilibili_followers:
     enabled: true
@@ -66,7 +66,7 @@ tasks:
     priority: 40
     interval: 1200 # 20 minutes
     api_key: "<<<<< REPLACE_WITH_YOUR_API_KEY >>>>>" # Tianapi API Key, https://www.tianapi.com/console/
-    province: "Beijing" # Province, do not include "Province"
+    province: "北京"
     display_type: "92" # Type of fuel to display: 0(#0 Diesel), 89(#89 Gasoline), 92(#92 Gasoline), 95(#95 Gasoline), 98(#98 Gasoline)
 
   minecraft_server_status:
