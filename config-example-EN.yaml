@@ -53,6 +53,14 @@ tasks:
     username: "<<<<< REPLACE_WITH_YOUR_GITHUB_USERNAME >>>>>"
     draw_avatar: false # Whether to use avatar thumbnail as icon
 
+  github_contributions:
+    enabled: true
+    priority: 31
+    interval: 3600 # 1 hour
+    username: "<<<<< REPLACE_WITH_YOUR_GITHUB_USERNAME >>>>>" # GitHub username
+    rainbow_months: true # true=use rainbow colors for month markers, false=single color
+    split_by_month: false # true=split display by month, false=continuous display
+
   gas_price:
     enabled: true
     priority: 40

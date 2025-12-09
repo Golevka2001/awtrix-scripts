@@ -3,6 +3,7 @@ from helpers import requests_get
 
 from .base import BaseTask
 
+# The standard of China's air quality index
 ICON_COLOR_MAP = [
     (50, "47651", "#71d608"),  # 0-50：优，绿色
     (100, "47652", "#faff1b"),  # 51-100：良，黄色
