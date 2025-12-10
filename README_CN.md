@@ -71,7 +71,7 @@ systemctl stop awtrix-scripts.service
 
 ### Apps
 
-重命名 [config-example-CN.yaml](config-example-CN.yaml) 为 `config.yaml` 并根据需要修改。
+重命名 [config-example-CN.yaml](config-example-CN.yaml) 为 `config.yaml` 并根据需要修改（不需要重启服务，修改会被自动加载）。
 
 也可以直接修改 [tasks](./tasks/) 目录下各个任务的详细设置。
 

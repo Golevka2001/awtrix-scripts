@@ -2,20 +2,33 @@ import json
 import os
 from pathlib import Path
 
-from config import STORE_DIR
+from config import get_app_config
 
-if not os.path.exists(STORE_DIR):
-    os.makedirs(STORE_DIR)
+
+def get_store_dir():
+    """Get store directory from current config"""
+    app_config = get_app_config()
+    store_dir = app_config["store_dir"]
+    return str((Path(__file__).parent / store_dir).resolve())
+
+
+def _ensure_store_dir():
+    store_dir = get_store_dir()
+    if not os.path.exists(store_dir):
+        os.makedirs(store_dir)
 
 
 def save(task_name, data):
-    path = str(Path(STORE_DIR) / f"{task_name}.json")
+    _ensure_store_dir()
+    store_dir = get_store_dir()
+    path = str(Path(store_dir) / f"{task_name}.json")
     with open(path, "w") as f:
         json.dump(data, f)
 
 
 def load(task_name):
-    path = str(Path(STORE_DIR) / f"{task_name}.json")
+    store_dir = get_store_dir()
+    path = str(Path(store_dir) / f"{task_name}.json")
     if not os.path.exists(path):
         return None
     with open(path) as f:

@@ -4,7 +4,7 @@ import spotipy
 from spotipy.cache_handler import CacheFileHandler
 from spotipy.oauth2 import SpotifyOAuth
 
-from config import STORE_DIR, config_data
+from config import config_data, get_app_config
 from helpers import cjk_to_initials, fetch_image_and_convert_to_base64
 
 from .base import BaseTask
@@ -35,12 +35,15 @@ class SpotifyCurrentPlaybackTask(BaseTask):
 
     def fetch_data(self):
         """Fetch Spotify current playback data"""
+        app_config = get_app_config()
+        store_dir = app_config["store_dir"]
+
         task_config = config_data.get("tasks", {}).get(APP_NAME, {})
         client_id = task_config.get("client_id")
         client_secret = task_config.get("client_secret")
         redirect_uri = task_config.get("redirect_uri", "http://127.0.0.1:1234")
         auth_cache_file = task_config.get("auth_cache_file", "spotify_cache.json")
-        cache_path = str(Path(STORE_DIR) / auth_cache_file)
+        cache_path = str(Path(__file__).parent.parent / store_dir / auth_cache_file)
         self.show_artist = task_config.get("show_artist", True)
         self.track_name_first = task_config.get("track_name_first", True)
         self.cjk_to_initials = task_config.get("cjk_to_initials", True)

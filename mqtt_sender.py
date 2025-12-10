@@ -1,22 +1,23 @@
 import paho.mqtt.client as mqtt
 
-from config import MQTT_HOST, MQTT_PASSWORD, MQTT_PORT, MQTT_TOPIC_PREFIX, MQTT_USERNAME
+from config import get_mqtt_config
 
 
 def send_message(app_name, payload):
     """Send MQTT message"""
+    mqtt_config = get_mqtt_config()
     client = mqtt.Client()
 
     # Authenticate if username and password are set
-    if MQTT_USERNAME and MQTT_PASSWORD:
-        client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
+    if mqtt_config["username"] and mqtt_config["password"]:
+        client.username_pw_set(mqtt_config["username"], mqtt_config["password"])
 
     # Build topic
-    prefix = MQTT_TOPIC_PREFIX.rstrip("/")
+    prefix = mqtt_config["topic_prefix"].rstrip("/")
     app_name = app_name.strip("/")
     topic = f"{prefix}/{app_name}"
 
     # Connect and publish message
-    client.connect(MQTT_HOST, MQTT_PORT, 60)
+    client.connect(mqtt_config["host"], mqtt_config["port"], 60)
     client.publish(topic, payload)
     client.disconnect()
