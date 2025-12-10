@@ -12,3 +12,4 @@ wheels/
 # Local files
 config.yaml
 data/
+uv.lock

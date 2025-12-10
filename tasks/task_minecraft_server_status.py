@@ -1,7 +1,6 @@
-from urllib.parse import urljoin
+from mcstatus import BedrockServer, JavaServer
 
 from config import config_data
-from helpers import requests_get
 
 from .base import BaseTask
 
@@ -14,9 +13,6 @@ PROGRESS_COLOR = "#ffffff"
 PROGRESS_BG_COLOR = "#666666"
 
 ERROR_ICON = OFFLINE_ICON
-
-API_URL_JAVA = "https://api.mcsrvstat.us/3/"
-API_URL_BEDROCK = "https://api.mcsrvstat.us/bedrock/3/"
 
 APP_NAME = "minecraft_server_status"
 DEFAULT_INTERVAL = 300
@@ -36,15 +32,18 @@ class MinecraftServerStatusTask(BaseTask):
 
         if not server_addr:
             raise Exception("Minecraft server address not configured")
+        try:
+            if java_edition:
+                server = JavaServer.lookup(server_addr)
+            else:
+                server = BedrockServer.lookup(server_addr)
+            status = server.status()
+            online = status.players.online or 0
+            maximum = status.players.max or 0
 
-        # Choose API based on edition
-        api_url = API_URL_JAVA if java_edition else API_URL_BEDROCK
-        url = urljoin(api_url, server_addr)
-
-        response = requests_get(url)
-        response.raise_for_status()
-        data = response.json()
-        return data
+            return {"online": True, "players": {"online": online, "max": maximum}}
+        except Exception:
+            return {"online": False}
 
     def create_mqtt_message(self, data):
         """Create MQTT message from server status data"""
