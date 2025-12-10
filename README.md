@@ -71,7 +71,7 @@ systemctl stop awtrix-scripts.service
 
 ### Apps
 
-Copy [config-example-EN.yaml](config-example-EN.yaml) to `config.yaml` and modify it according to your needs.
+Copy [config-example-EN.yaml](config-example-EN.yaml) to `config.yaml` and modify it according to your needs (You don't need to restart the service; changes will be picked up automatically).
 
 You can also modify each task's detailed settings in the [tasks](./tasks/) directory.
 

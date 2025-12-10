@@ -11,11 +11,18 @@ from colour import Color
 from korean_romanizer.romanizer import Romanizer as KoreanRomanizer
 from pypinyin import Style, lazy_pinyin
 
-from config import STORE_DIR
+from config import get_app_config
 
 USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
 REQUEST_TIMEOUT = 10
-IMAGE_CACHE_PATH = str(Path(STORE_DIR) / "image_cache.json")
+
+
+def get_image_cache_path():
+    """Get image cache path from current config"""
+    app_config = get_app_config()
+    store_dir = app_config["store_dir"]
+    return str(Path(__file__).parent / store_dir / "image_cache.json")
+
 
 KKS = pykakasi.kakasi()
 
@@ -151,9 +158,10 @@ def fetch_image_and_convert_to_base64(url, target_size, image_format="JPG"):
     global _image_cache_dict
     if "_image_cache_dict" not in globals():
         # Load persistent cache from disk
-        if os.path.exists(IMAGE_CACHE_PATH):
+        image_cache_path = get_image_cache_path()
+        if os.path.exists(image_cache_path):
             try:
-                with open(IMAGE_CACHE_PATH, "r", encoding="utf-8") as f:
+                with open(image_cache_path, "r", encoding="utf-8") as f:
                     _image_cache_dict = json.load(f)
             except Exception:
                 _image_cache_dict = {}
@@ -185,7 +193,8 @@ def fetch_image_and_convert_to_base64(url, target_size, image_format="JPG"):
         # Write to cache (update both memory and disk)
         cache[key] = base64_str
         try:
-            with open(IMAGE_CACHE_PATH, "w", encoding="utf-8") as f:
+            image_cache_path = get_image_cache_path()
+            with open(image_cache_path, "w", encoding="utf-8") as f:
                 json.dump(cache, f, ensure_ascii=False)
         except Exception as e:
             print(f"Error writing image cache: {e}")

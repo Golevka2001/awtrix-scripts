@@ -2,8 +2,12 @@ from pathlib import Path
 
 import yaml
 
+CONFIG_FILE = "config.yaml"
+_config_cache = None
 
-def load_config(config_path="config.yaml"):
+
+def load_config(config_path=CONFIG_FILE):
+    """Load configuration from YAML file"""
     config = {}
 
     if Path(config_path).exists():
@@ -13,6 +17,40 @@ def load_config(config_path="config.yaml"):
     return config
 
 
+def get_config():
+    """Get current configuration (with hot reload support)"""
+    global _config_cache
+    _config_cache = load_config(CONFIG_FILE)
+    return _config_cache
+
+
+def get_mqtt_config():
+    """Get MQTT configuration"""
+    config = get_config()
+    return {
+        "host": config.get("mqtt", {}).get("host", "localhost"),
+        "port": config.get("mqtt", {}).get("port", 1883),
+        "topic_prefix": config.get("mqtt", {}).get("topic_prefix", "awtrix/custom/"),
+        "username": config.get("mqtt", {}).get("username", ""),
+        "password": config.get("mqtt", {}).get("password", ""),
+    }
+
+
+def get_app_config():
+    """Get app configuration"""
+    config = get_config()
+    app_config = config.get("app", {})
+    return {
+        "allowed_hours": app_config.get("allowed_hours", [[0, 1], [8, 24]]),
+        "main_loop_interval": app_config.get("main_loop_interval", 20),
+        "task_timeout": app_config.get("task_timeout", 5),
+        "send_interval": app_config.get("send_interval", 0.5),
+        "behavior_on_failure": app_config.get("behavior_on_failure", 0),
+        "store_dir": app_config.get("store_dir", "data"),
+    }
+
+
+# Legacy global variables for backward compatibility (loaded on module init)
 config_data = load_config()
 
 # MQTT Settings
