@@ -51,6 +51,8 @@ Default icon ID: 77050.
 
 ![Bilibili Followers](README.assets/bilibili-followers.jpeg)
 
+[AWTRIX Flows Link](https://flows.blueforcer.de/flow/rBjpWEese3od)
+
 Your Bilibili follower count on the panel.
 
 Press the select button for an instant refresh.
@@ -203,6 +205,8 @@ Each app needs only its base URL swapped; paths, query strings and request heade
 | deepseek-balance              | `https://api.deepseek.com` | `http://<router IP>:8088/api-deepseek-com` |
 | bilibili-followers            | `https://api.bilibili.com` | `http://<router IP>:8088/api-bilibili-com` |
 | github-heatmap                | `https://<worker domain>`  | `http://<router IP>:8088/<worker prefix>`  |
+
+Note the new URL is **http, not https**.
 
 ### Home Assistant
 
