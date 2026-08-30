@@ -1,0 +1,10 @@
+{
+  "name": "awtrixng-github-heatmap-worker",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "dependencies": {
+    "jpeg-js": "^0.4.4",
+    "upng-js": "^2.1.0"
+  }
+}

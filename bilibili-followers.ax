@@ -1,0 +1,167 @@
+# @name    Bilibili Followers
+# @desc    Follower count from the Bilibili relation API
+# @author  Golevka2001
+# @version 1.0
+# @config  uid    text    "UID"      help="The number in space.bilibili.com/<uid>"
+# @config  ic     text    "Icon ID"  default="71441"  help="LaMetric icon ID"
+# @config  every  number  "Refresh"  default=60  min=1  unit=min
+
+import string
+
+class BilibiliFollowers
+  var url, label, tx, tc, ic, units, err
+  # refresh countdown + failure backoff, see due()/failed()/ok()/now()
+  var ticks, span, retry, busy
+
+  def init()
+    # saving a setting restarts the app, so the URL built here never goes stale
+    self.url = ""
+    var uid = store.get("uid")
+    if uid != nil && uid != ""
+      self.url = "https://api.bilibili.com/x/relation/stat?vmid=" + str(uid)
+    end
+    self.label = self.url == "" ? "UID?" : "..."
+    self.tx = 9
+    self.tc = 0xFFFFFF
+    self.ic = ""
+    self.units = ["", "k", "M", "B", "T"]
+    self.ticks = 0
+    self.span = 60
+    self.retry = 30
+    self.busy = false
+    self.err = false
+  end
+
+  # first fetch + fill display state before the first frame
+  def setup()
+    self.loop()
+  end
+
+  # select forces a refresh; left and right just rotate
+  def on_button(btn)
+    if btn == "select"
+      self.now()
+    end
+  end
+
+  def on_body(body, status)
+    shared.set("f", 0)
+    # non-200 or nil body: nothing usable this attempt
+    if status != 200 || body == nil
+      self.failed()
+      return
+    end
+    var m = re.search("\"follower\":(\\d+)", body)
+    if m == nil
+      self.failed()
+      return
+    end
+    var n = num(m[1])
+    if n == nil
+      self.failed()
+      return
+    end
+    self.ok()
+
+    # format here, not in draw() -- draw() must not allocate
+    var u = 0
+    var d = 1
+    # promote at 999.5 so a count rounding up to 1000 becomes 1.00 of the next unit
+    while n >= d * 999.5 && u < 4
+      d *= 1000
+      u += 1
+    end
+    if u == 0
+      self.label = str(int(n))
+    else
+      var v = n * 1.0 / d             # * 1.0 forces real division
+      # cut on the rounded value so 9999 reads "10.0k", never "10.00k"
+      if v < 9.995
+        self.label = string.format("%.2f", v) + self.units[u]
+      elif v < 99.95
+        self.label = string.format("%.1f", v) + self.units[u]
+      else
+        self.label = str(round(v)) + self.units[u]
+      end
+    end
+  end
+
+  def loop()
+    # url checked first: due() raises busy as a side effect
+    if self.url != "" && self.due(store.get("every"))
+      shared.set("f", 1)
+      # the needle keeps its colon so it can't match the earlier "following" field
+      http.get(self.url, / b, st -> self.on_body(b, st),
+               {'headers': {'User-Agent': "Mozilla/5.0"},
+                'find': "\"follower\":", 'keep': 24})
+    end
+
+    # while there is no reading yet, the placeholder reflects the last attempt
+    if self.label == "..."
+      self.label = self.err ? "?" : "..."
+    end
+    self.tx = 9 + int((width() - 9 - text_ink_width(self.label)) / 2)
+    self.ic = store.get("ic")
+    self.tc = settings.get("textColor")
+    if self.tc == nil self.tc = 0xFFFFFF end
+    if self.label == "?" self.tc = 0xCC7722 end
+  end
+
+  # Fires at most once per interval, never while a request is out or another
+  # app's TLS handshake is running (shared "f" flag, official convention).
+  # Raises busy, so only call it when a request will actually be issued.
+  def due(every)
+    self.span = max(60, num(every, 1) * 60)
+    if self.ticks > 0
+      self.ticks = self.ticks - 1
+      return false
+    end
+    if self.busy
+      return false
+    end
+    for k : shared.keys()
+      var n = size(k)
+      if n > 2 && k[n - 2 .. n - 1] == ".f" && shared.get(k) == 1
+        var a = shared.age(k)
+        if a != nil && a < 20000
+          return false
+        end
+      end
+    end
+    self.ticks = self.span
+    self.busy = true
+    return true
+  end
+
+  # failure backoff: retry at 30s, doubling, capped at the interval; raises
+  # err so a fetch with no data yet can show "?" instead of "..."
+  def failed()
+    self.busy = false
+    self.ticks = self.retry
+    self.retry = min(self.retry * 2, self.span)
+    self.err = true
+  end
+
+  def ok()
+    self.busy = false
+    self.retry = 30
+    self.err = false
+  end
+
+  # manual refresh: clears the countdown but leaves busy alone, so a press
+  # while a request is out can't fire a second one
+  def now()
+    self.ticks = 0
+    self.retry = 30
+  end
+
+  def draw()
+    clear()
+    if !icon(self.ic, 0, 0)
+      rect_fill(0, 0, 8, 8, 0x222222)
+    end
+    text(self.tx, 6, self.label, self.tc)
+  end
+end
+
+return BilibiliFollowers()

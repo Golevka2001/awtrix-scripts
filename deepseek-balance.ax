@@ -1,0 +1,200 @@
+# @name    DeepSeek Balance
+# @desc    Account balance from the DeepSeek API, with a peak/off-peak bar
+# @author  Golevka2001
+# @version 1.0
+# @config  api_key  text    "API Key"      help="platform.deepseek.com, starts with sk-"
+# @config  ic       text    "Icon ID"      default="77050"  help="LaMetric icon ID"
+# @config  low      number  "Low balance"  default=5  min=0  unit=CNY help="Turns the number red below this"
+# @config  bar      select  "Peak bar"     default=on  options=on,off  help="Bottom bar colour: green off-peak, amber peak"
+# @config  every    number  "Refresh"      default=10  min=1  unit=min
+
+import string
+
+class DeepSeekBalance
+  var url, label, val, tx, tc, ic, bc, err
+  # refresh countdown + failure backoff, see due()/failed()/ok()/now()
+  var ticks, span, retry, busy
+
+  def init()
+    # the key rides in a header, so the URL is fixed; an empty key disables fetching
+    self.url = ""
+    var key = store.get("api_key")
+    if key != nil && key != ""
+      self.url = "https://api.deepseek.com/user/balance"
+    end
+
+    self.val = nil
+    self.label = self.url == "" ? "KEY?" : "..."
+
+    self.tx = 9
+    self.tc = 0xFFFFFF
+    self.ic = store.get("ic")
+    self.bc = nil
+    self.ticks = 0
+    self.span = 60
+    self.retry = 30
+    self.busy = false
+    self.err = false
+  end
+
+  # first fetch + fill display state before the first frame
+  def setup()
+    self.loop()
+  end
+
+  # select forces a refresh; left and right just rotate
+  def on_button(btn)
+    if btn == "select"
+      self.now()
+    end
+  end
+
+  # ¥x.xx / ¥x.x / ¥xxxxx -- the widest result still fits the 23px text area.
+  # Cuts are on the rounded value so 99.995 can't format as "100.00".
+  # gas-price-cn.ax carries a byte-identical copy.
+  def money(v)
+    var s
+    if v < 99.995
+      s = string.format("%.2f", v)
+    elif v < 999.95
+      s = string.format("%.1f", v)
+    else
+      s = str(int(v))
+    end
+    return "¥" + s
+  end
+
+  def on_body(body, status)
+    shared.set("f", 0)
+    # non-200 or nil body: nothing usable this attempt
+    if status != 200 || body == nil
+      self.failed()
+      return
+    end
+    # the needle keeps its colon so it can't match "granted_balance"/"topped_up_balance"
+    var m = re.search("\"total_balance\":\"?([0-9.]+)", body)
+    if m == nil
+      self.failed()
+      return
+    end
+    var v = num(m[1])
+    if v == nil
+      self.failed()
+      return
+    end
+    self.ok()
+    self.val = v
+    self.label = self.money(v)
+  end
+
+  def loop()
+    # url checked first: due() raises busy as a side effect
+    if self.url != "" && self.due(store.get("every"))
+      shared.set("f", 1)
+      # keep only the 32 bytes after the needle
+      http.get(self.url, / b, st -> self.on_body(b, st),
+               {'headers': {'Authorization': "Bearer " + str(store.get("api_key"))},
+                'find': "\"total_balance\":", 'keep': 32})
+    end
+
+    self.tc = settings.get("textColor")
+    if self.tc == nil self.tc = 0xFFFFFF end
+    # an unset icon becomes "" rather than reaching icon() as nil
+    self.ic = store.get("ic")
+    if self.ic == nil self.ic = "" end
+    if self.val != nil && self.val < num(store.get("low"), 0)
+      self.tc = 0xFF3333
+    end
+    if self.err && self.val == nil
+      self.tc = 0xCC7722
+    end
+
+    self.bc = nil
+    if store.get("bar") == "on"
+      # DeepSeek peak windows: Mon-Fri 01:00-04:00 and 06:00-10:00 UTC, weekends
+      # off-peak. Derived from epoch_ms() in UTC so the bar is right in any
+      # device timezone (UTC has no DST; 1970-01-01 was a Thursday, hence +4).
+      var e = epoch_ms()
+      if e < 0
+        # clock not read yet -- don't guess
+        self.bc = 0x333333
+      else
+        var h = (e / 3600000) % 24
+        var w = ((e / 86400000) + 4) % 7
+        if w >= 1 && w <= 5 && ((h >= 1 && h < 4) || (h >= 6 && h < 10))
+          self.bc = 0xFF8800
+        else
+          self.bc = 0x00AA33
+        end
+      end
+    end
+
+    # while there is no reading yet, the placeholder reflects the last attempt
+    if self.val == nil
+      self.label = self.err ? "?" : (self.url == "" ? "KEY?" : "...")
+    end
+    self.tx = 9 + int((width() - 9 - text_ink_width(self.label)) / 2)
+  end
+
+  # Fires at most once per interval, never while a request is out or another
+  # app's TLS handshake is running (shared "f" flag, official convention).
+  # Raises busy, so only call it when a request will actually be issued.
+  def due(every)
+    self.span = max(60, num(every, 1) * 60)
+    if self.ticks > 0
+      self.ticks = self.ticks - 1
+      return false
+    end
+    if self.busy
+      return false
+    end
+    for k : shared.keys()
+      var n = size(k)
+      if n > 2 && k[n - 2 .. n - 1] == ".f" && shared.get(k) == 1
+        var a = shared.age(k)
+        if a != nil && a < 20000
+          return false
+        end
+      end
+    end
+    self.ticks = self.span
+    self.busy = true
+    return true
+  end
+
+  # failure backoff: retry at 30s, doubling, capped at the interval; raises
+  # err so a fetch with no data yet can show "?" instead of "..."
+  def failed()
+    self.busy = false
+    self.ticks = self.retry
+    self.retry = min(self.retry * 2, self.span)
+    self.err = true
+  end
+
+  def ok()
+    self.busy = false
+    self.retry = 30
+    self.err = false
+  end
+
+  # manual refresh: clears the countdown but leaves busy alone, so a press
+  # while a request is out can't fire a second one
+  def now()
+    self.ticks = 0
+    self.retry = 30
+  end
+
+  def draw()
+    clear()
+    if !icon(self.ic, 0, 0)
+      rect_fill(0, 0, 8, 8, 0x222222)
+    end
+    # baseline 6: glyphs ink rows 1..5, leaving row 7 free for the bar
+    text(self.tx, 6, self.label, self.tc)
+    if self.bc != nil
+      rect_fill(9, 7, width() - 9, 1, self.bc)
+    end
+  end
+end
+
+return DeepSeekBalance()

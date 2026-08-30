@@ -1,0 +1,78 @@
+# @name    Year Progress
+# @desc    Percentage of the current year elapsed, with a progress bar
+# @author  Golevka2001
+# @version 1.0
+# @config  ic    text    "Icon ID"    default="12111"  help="LaMetric icon ID"
+# @config  tint  color  "Bar colour"  default=#FFFFFF
+
+import string
+
+class YearProgress
+  var mdays, label, frac, tx, tint, track, tc, ic
+
+  def init()
+    self.mdays = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    self.label = "--"
+    self.frac = 0
+    self.tx = 9
+    self.tint = 0xFFFFFF
+    self.track = 0x3F3F3F
+    self.tc = 0xFFFFFF
+    self.ic = ""
+  end
+
+  # fill the display state before the first frame
+  def setup()
+    self.loop()
+  end
+
+  def loop()
+    # wall-clock calls answer -1 until the clock has synced
+    if year() < 0 return end
+    var y = year()
+    var m = month()
+    var doy = day()
+    if m >= 2
+      for i : 0 .. m - 2
+        doy += self.mdays[i]
+      end
+    end
+    var leap = (y % 4 == 0 && y % 100 != 0) || y % 400 == 0
+    if leap && m > 2
+      doy += 1
+    end
+    var days = leap ? 366 : 365
+    var elapsed = (doy - 1) * 86400 + hour() * 3600 + minute() * 60 + second()
+    self.frac = clamp(elapsed * 100.0 / (days * 86400), 0.0, 100.0)
+
+    self.label = string.format("%.2f", self.frac) + " %"
+    self.tx = 9 + int((width() - 9 - text_ink_width(self.label)) / 2)
+
+    # tint feeds the bit-ops below -- nil would kill the app, so guard it
+    self.tint = store.get("tint")
+    if self.tint == nil self.tint = 0xFFFFFF end
+    # unlit track = the tint at quarter brightness, per channel (dividing the
+    # packed integer would bleed red into green)
+    self.track = rgb(((self.tint >> 16) & 0xFF) / 4, ((self.tint >> 8) & 0xFF) / 4, (self.tint & 0xFF) / 4)
+    self.ic = store.get("ic")
+    self.tc = settings.get("textColor")
+    if self.tc == nil self.tc = 0xFFFFFF end
+  end
+
+  def draw()
+    clear()
+    if !icon(self.ic, 0, 0)
+      rect_fill(0, 0, 8, 8, 0x222222)
+    end
+    # baseline 6: glyphs ink rows 1..5, leaving row 7 free for the bar
+    text(self.tx, 6, self.label, self.tc)
+    var w = width() - 9
+    rect_fill(9, 7, w, 1, self.track)
+    var filled = round(w * self.frac / 100)
+    if filled > 0
+      rect_fill(9, 7, filled, 1, self.tint)
+    end
+  end
+end
+
+return YearProgress()

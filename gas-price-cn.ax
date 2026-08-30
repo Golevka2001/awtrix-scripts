@@ -1,0 +1,166 @@
+# @name    Gas Price (CN)
+# @desc    Fuel price for Chinese provinces from the Tianapi oil price API
+# @author  Golevka2001
+# @version 1.0
+# @config  api_key  text    "API Key"   help="tianapi.com console"
+# @config  prov     text    "Province"  default="北京"  help="Chinese province name"
+# @config  fuel     select  "Fuel"      default=92  options=0,89,92,95,98
+# @config  ic       text    "Icon ID"   default="63850"  help="LaMetric icon ID"
+# @config  every    number  "Refresh"   default=60  min=1  unit=min
+
+import string
+
+class GasPrice
+  var url, needle, pat, label, tx, tc, ic, err
+  # refresh countdown + failure backoff, see due()/failed()/ok()/now()
+  var ticks, span, retry, busy
+
+  def init()
+    # saving a setting restarts the app, so the URL and needle for the chosen
+    # grade are built here and never go stale
+    self.needle = "\"p" + str(store.get("fuel")) + "\":"
+    self.pat = self.needle + "\"?([0-9.]+)"
+    self.url = ""
+    var key = store.get("api_key")
+    if key != nil && key != ""
+      self.url = "https://apis.tianapi.com/oilprice/index?key=" + str(key) +
+                 "&prov=" + str(store.get("prov"))
+    end
+    self.label = "--"
+    self.tx = 9
+    self.tc = 0xFFFFFF
+    self.ic = ""
+    self.ticks = 0
+    self.span = 60
+    self.retry = 30
+    self.busy = false
+    self.err = false
+  end
+
+  # first fetch + fill display state before the first frame
+  def setup()
+    self.loop()
+  end
+
+  # select forces a refresh; left and right just rotate
+  def on_button(btn)
+    if btn == "select"
+      self.now()
+    end
+  end
+
+  # ¥x.xx / ¥x.x / ¥xxxxx -- the widest result still fits the 23px text area.
+  # Cuts are on the rounded value so 99.995 can't format as "100.00".
+  # Byte-identical copy lives in deepseek-balance.ax.
+  def money(v)
+    var s
+    if v < 99.995
+      s = string.format("%.2f", v)
+    elif v < 999.95
+      s = string.format("%.1f", v)
+    else
+      s = str(int(v))
+    end
+    return "¥" + s
+  end
+
+  def on_body(body, status)
+    shared.set("f", 0)
+    # non-200 or nil body: nothing usable this attempt
+    if status != 200 || body == nil
+      self.failed()
+      return
+    end
+    var m = re.search(self.pat, body)
+    if m == nil
+      self.failed()
+      return
+    end
+    # [0-9.]+ also matches garbage like "8..5"; num() rejects it
+    var v = num(m[1])
+    if v == nil
+      self.failed()
+      return
+    end
+    self.ok()
+    self.label = self.money(v)
+  end
+
+  def loop()
+    # url checked first: due() raises busy as a side effect
+    if self.url != "" && self.due(store.get("every"))
+      shared.set("f", 1)
+      # keep only the 24 bytes after the needle
+      http.get(self.url, / b, st -> self.on_body(b, st),
+               {'find': self.needle, 'keep': 24})
+    end
+
+    # while there is no reading yet, the placeholder reflects the last attempt
+    if self.label == "--"
+      self.label = self.err ? "?" : "--"
+    end
+    self.tx = 9 + int((width() - 9 - text_ink_width(self.label)) / 2)
+    self.ic = store.get("ic")
+    self.tc = settings.get("textColor")
+    if self.tc == nil self.tc = 0xFFFFFF end
+    if self.label == "?" self.tc = 0xCC7722 end
+  end
+
+  # Fires at most once per interval, never while a request is out or another
+  # app's TLS handshake is running (shared "f" flag, official convention).
+  # Raises busy, so only call it when a request will actually be issued.
+  def due(every)
+    self.span = max(60, num(every, 1) * 60)
+    if self.ticks > 0
+      self.ticks = self.ticks - 1
+      return false
+    end
+    if self.busy
+      return false
+    end
+    for k : shared.keys()
+      var n = size(k)
+      if n > 2 && k[n - 2 .. n - 1] == ".f" && shared.get(k) == 1
+        var a = shared.age(k)
+        if a != nil && a < 20000
+          return false
+        end
+      end
+    end
+    self.ticks = self.span
+    self.busy = true
+    return true
+  end
+
+  # failure backoff: retry at 30s, doubling, capped at the interval; raises
+  # err so a fetch with no data yet can show "?" instead of "..."
+  def failed()
+    self.busy = false
+    self.ticks = self.retry
+    self.retry = min(self.retry * 2, self.span)
+    self.err = true
+  end
+
+  def ok()
+    self.busy = false
+    self.retry = 30
+    self.err = false
+  end
+
+  # manual refresh: clears the countdown but leaves busy alone, so a press
+  # while a request is out can't fire a second one
+  def now()
+    self.ticks = 0
+    self.retry = 30
+  end
+
+  def draw()
+    clear()
+    if !icon(self.ic, 0, 0)
+      rect_fill(0, 0, 8, 8, 0x222222)
+    end
+    text(self.tx, 6, self.label, self.tc)
+  end
+end
+
+return GasPrice()
