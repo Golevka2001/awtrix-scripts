@@ -1,15 +1,20 @@
 # @name    Bilibili Followers
 # @desc    Follower count from the Bilibili relation API
 # @author  Golevka2001
-# @version 1.0
-# @config  uid    text    "UID"      help="The number in space.bilibili.com/<uid>"
-# @config  ic     text    "Icon ID"  default="71441"  help="LaMetric icon ID"
-# @config  every  number  "Refresh"  default=60  min=1  unit=min
+# @version 2.0
+# @config  uid             text    "UID"      help="The number in space.bilibili.com/<uid>"
+# @config  avatar          text    "Avatar URL"  help="Avatar image URL (needs Worker URL). Leave empty to use the Icon ID instead."
+# @config  worker          text    "Worker URL"  help="Image proxy worker endpoint, used when Avatar URL is set"
+# @config  client_id       text    "(Optional) CF Access Client ID"
+# @config  client_secret   text    "(Optional) CF Access Client Secret"
+# @config  ic              text    "Icon ID"  default="71441"  help="LaMetric icon ID, fallback when Avatar is empty"
+# @config  every           number  "Refresh"  default=60  min=1  unit=min
 
 import string
 
 class BilibiliFollowers
-  var url, label, tx, tc, ic, units, err
+  var url, label, tx, tc, ic, def_ic, avatar, worker, units, err
+  var client_id, client_secret
   # refresh countdown + failure backoff, see due()/failed()/ok()/now()
   var ticks, span, retry, busy
 
@@ -23,7 +28,14 @@ class BilibiliFollowers
     self.label = self.url == "" ? "UID?" : "..."
     self.tx = 9
     self.tc = 0xFFFFFF
-    self.ic = ""
+    self.def_ic = store.get("ic")
+    self.ic = self.def_ic
+    self.avatar = store.get("avatar") == nil ? "" : str(store.get("avatar"))
+    self.worker = store.get("worker") == nil ? "" : str(store.get("worker"))
+    var cid = store.get("client_id")
+    self.client_id = cid == nil ? "" : str(cid)
+    var secret = store.get("client_secret")
+    self.client_secret = secret == nil ? "" : str(secret)
     self.units = ["", "k", "M", "B", "T"]
     self.ticks = 0
     self.span = 60
@@ -84,6 +96,37 @@ class BilibiliFollowers
         self.label = str(round(v)) + self.units[u]
       end
     end
+
+    # Avatar on: send the fixed avatar URL to the worker and let on_icon()
+    # settle the icon (and the busy flag).  Unlike GitHub, the Bilibili
+    # relation response carries no avatar field, so it is a separate config.
+    if self.avatar != "" && self.worker != ""
+      shared.set("f", 1)
+      http.get(self.worker, / b2, st2 -> self.on_icon(b2, st2),
+               {'headers': {'X-Url': self.avatar,
+                            'CF-Access-Client-Id': self.client_id,
+                            'CF-Access-Client-Secret': self.client_secret,
+                            'User-Agent': "awtrix-bilibili-followers"}})
+      return
+    end
+    self.ic = self.def_ic
+    self.ok()
+  end
+
+  # Second leg of the avatar fetch: the worker turned the avatar into an 8x8
+  # base64 JPEG.  On any failure fall back to the default icon id.
+  def on_icon(body, status)
+    shared.set("f", 0)
+    if status == 200 && body != nil
+      var m = re.search('"data": *"([^"]*)"', body)
+      if m != nil && m[1] != ""
+        self.ic = "base64:" + m[1]
+        self.ok()
+        return
+      end
+    end
+    self.ic = self.def_ic
+    self.ok()
   end
 
   def loop()
@@ -101,7 +144,10 @@ class BilibiliFollowers
       self.label = self.err ? "?" : "..."
     end
     self.tx = 9 + int((width() - 9 - text_ink_width(self.label)) / 2)
-    self.ic = store.get("ic")
+    if self.avatar == "" || self.worker == ""
+      # no avatar in use: keep reading the plain icon config
+      self.ic = store.get("ic")
+    end
     self.tc = settings.get("textColor")
     if self.tc == nil self.tc = 0xFFFFFF end
     if self.label == "?" self.tc = 0xCC7722 end

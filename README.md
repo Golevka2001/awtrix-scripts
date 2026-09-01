@@ -86,11 +86,19 @@ Press the select button for an instant refresh.
 
 Setup: paste your UID into settings — it's the number in your profile URL: `space.bilibili.com/12345` → `12345`.
 
-| Setting | Value                                              |
-| ------- | -------------------------------------------------- |
-| UID     | Your Bilibili UID (the number in your profile URL) |
-| Icon ID | LaMetric icon ID (default 71441)                   |
-| Refresh | Refresh interval in minutes (min 1)                |
+| Setting                            | Value                                                               |
+| ---------------------------------- | ------------------------------------------------------------------- |
+| UID                                | Your Bilibili UID (the number in your profile URL)                  |
+| (Optional) Avatar URL              | Fixed avatar image URL; set Worker URL to use it                    |
+| (Optional) Worker URL              | Image-proxy worker endpoint; used when Avatar URL is set            |
+| (Optional) CF Access Client ID     | For a Cloudflare Access-protected worker                            |
+| (Optional) CF Access Client Secret | For a Cloudflare Access-protected worker                            |
+| Icon ID                            | LaMetric icon ID (default 71441); fallback when Avatar URL is empty |
+| Refresh                            | Refresh interval in minutes                                         |
+
+#### Using an avatar
+
+If you want to show your Bilibili avatar, set **Avatar URL** to the image URL and paste your worker URL into **Worker URL** — the app fetches the avatar through the [image-proxy worker](#image-proxy-worker) and shows it as an **8x8 icon**.
 
 ### Year Progress — `year-progress.ax`
 
