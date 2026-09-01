@@ -1,6 +1,6 @@
 // GitHub contribution heatmap for AWTRIX NG.
 //
-// GET /?user=<github_username>[&rainbow=0][&split=1][&avatar=1][&contrast=1]
+// GET /?user=<github_username>[&rainbow=0][&split=1][&avatar=1]
 //
 // Returns a flat JSON array of 256 packed 0xRRGGBB integers (32x8, row-major)
 // ready for the Berry app to paint pixel-by-pixel.
@@ -57,11 +57,8 @@ async function handle(request, env) {
     (request.headers.get("X-Split") || q.get("split") || "0") === "1";
   const avatar =
     (request.headers.get("X-Avatar") || q.get("avatar") || "0") === "1";
-  const contrast =
-    parseFloat(request.headers.get("X-Contrast") || q.get("contrast") || "") ||
-    1;
 
-  console.log("request", { user, avatar, rainbow, split, contrast });
+  console.log("request", { user, avatar, rainbow, split });
 
   if (!user) return json({ error: "missing user" }, 400);
 
@@ -146,7 +143,6 @@ async function handle(request, env) {
     fetched: Boolean(avatarPixels),
     pixelCount: avatarPixels ? avatarPixels.length : 0,
   });
-  if (avatarPixels) avatarPixels = boostContrast(avatarPixels, contrast);
   return json(buildGrid(days, { rainbow, split, avatarPixels }));
 }
 
@@ -298,22 +294,6 @@ export function buildGrid(
   }
 
   return pixels;
-}
-
-// GitHub avatars are pastel washes that render flat on LEDs; push each channel
-// away from mid-grey to recover contrast.
-export function boostContrast(pixels, gain = 1) {
-  const out = new Array(pixels.length);
-  const f = (v) =>
-    Math.max(0, Math.min(255, Math.round((v - 128) * gain + 128)));
-  for (let i = 0; i < pixels.length; i++) {
-    const p = pixels[i];
-    const r = (p >> 16) & 0xff;
-    const g = (p >> 8) & 0xff;
-    const b = p & 0xff;
-    out[i] = (f(r) << 16) | (f(g) << 8) | f(b);
-  }
-  return out;
 }
 
 async function fetchAvatarPixels(url) {

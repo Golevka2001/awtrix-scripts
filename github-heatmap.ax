@@ -1,7 +1,7 @@
 # @name    GitHub Heatmap
 # @desc    GitHub contribution heatmap via external worker
 # @author  Golevka2001
-# @version 1.4
+# @version 1.5
 # @config  server         text    "Server URL"  help="Worker endpoint URL"
 # @config  user           text    "Username"  help="GitHub username"
 # @config  client_id      text    "(optional) CF Access Client ID"
@@ -9,11 +9,10 @@
 # @config  rainbow        bool    "Rainbow Months"  default=1
 # @config  split          bool    "Split by Month"  default=0
 # @config  avatar         bool    "Show Avatar"  default=0
-# @config  contrast       number  "Avatar Contrast"  default=1  min=1  max=3  step=0.1  help="Boost avatar contrast"
 # @config  every          number  "Refresh"  default=60  min=1  unit=min
 
 class GitHubHeatmap
-  var url, usr, client_id, client_secret, rainbow, split, avatar, contrast, pixels, err
+  var url, usr, client_id, client_secret, rainbow, split, avatar, pixels, err
   # Refresh state: ticks counts down to the next fetch, span is the configured
   # interval in seconds, retry is the current backoff delay, busy means a
   # request is still out.
@@ -38,8 +37,6 @@ class GitHubHeatmap
     self.split = sp == nil ? false : sp
     var av = store.get("avatar")
     self.avatar = av == nil ? false : av
-    var ct = store.get("contrast")
-    self.contrast = ct == nil ? 1 : ct
     self.pixels = []
     self.err = false
     self.ticks = 0
@@ -94,8 +91,7 @@ class GitHubHeatmap
                             'X-User': self.usr,
                             'X-Rainbow': self.rainbow ? "1" : "0",
                             'X-Split': self.split ? "1" : "0",
-                            'X-Avatar': self.avatar ? "1" : "0",
-                            'X-Contrast': str(self.contrast)}})
+                            'X-Avatar': self.avatar ? "1" : "0"}})
     end
   end
 

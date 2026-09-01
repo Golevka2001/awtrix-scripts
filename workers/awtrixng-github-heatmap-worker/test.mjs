@@ -10,15 +10,8 @@
 import UPNG from "upng-js";
 
 const mod = await import(new URL("./src/index.js", import.meta.url));
-const {
-  monthHue,
-  hsvToPacked,
-  boostContrast,
-  buildColumn,
-  buildGrid,
-  decodeJpeg,
-  decodePng,
-} = mod;
+const { monthHue, hsvToPacked, buildColumn, buildGrid, decodeJpeg, decodePng } =
+  mod;
 
 let failed = 0;
 function eq(name, got, want) {
@@ -47,15 +40,6 @@ eq("green", hsvToPacked(120, 100, 100), 0x00ff00);
 eq("blue", hsvToPacked(240, 100, 100), 0x0000ff);
 eq("black", hsvToPacked(0, 0, 0), 0x000000);
 eq("white", hsvToPacked(0, 0, 100), 0xffffff);
-
-// --- boostContrast ---------------------------------------------------------
-
-console.log("boostContrast");
-eq("mid stays mid", boostContrast([0x808080], 1.5)[0], 0x808080);
-eq("black stays black", boostContrast([0x000000], 1.5)[0], 0x000000);
-eq("white clamps", boostContrast([0xffffff], 1.5)[0], 0xffffff);
-eq("pastel spreads", boostContrast([0x9fa6e5], 1.5)[0], 0xafb9ff);
-eq("no avatar input", boostContrast([], 1.5).length, 0);
 
 // --- buildColumn -----------------------------------------------------------
 
