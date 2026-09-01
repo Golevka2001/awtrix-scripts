@@ -3,9 +3,8 @@
 # @author  Golevka2001
 # @version 1.0
 # @config  api_key  text    "API Key"      help="platform.deepseek.com, starts with sk-"
-# @config  ic       text    "Icon ID"      default="77050"  help="LaMetric icon ID"
 # @config  low      number  "Low balance"  default=5  min=0  unit=CNY help="Turns the number red below this"
-# @config  bar      select  "Peak bar"     default=on  options=on,off  help="Bottom bar colour: green off-peak, amber peak"
+# @config  ic       text    "Icon ID"      default="77050"  help="LaMetric icon ID"
 # @config  every    number  "Refresh"      default=10  min=1  unit=min
 
 import string
@@ -109,23 +108,20 @@ class DeepSeekBalance
       self.tc = 0xCC7722
     end
 
-    self.bc = nil
-    if store.get("bar") == "on"
-      # DeepSeek peak windows: Mon-Fri 01:00-04:00 and 06:00-10:00 UTC, weekends
-      # off-peak. Derived from epoch_ms() in UTC so the bar is right in any
-      # device timezone (UTC has no DST; 1970-01-01 was a Thursday, hence +4).
-      var e = epoch_ms()
-      if e < 0
-        # clock not read yet -- don't guess
-        self.bc = 0x333333
+    # DeepSeek peak windows: Mon-Fri 01:00-04:00 and 06:00-10:00 UTC, weekends
+    # off-peak. Derived from epoch_ms() in UTC so the bar is right in any
+    # device timezone (UTC has no DST; 1970-01-01 was a Thursday, hence +4).
+    var e = epoch_ms()
+    if e < 0
+      # clock not read yet -- don't guess
+      self.bc = 0x333333
+    else
+      var h = (e / 3600000) % 24
+      var w = ((e / 86400000) + 4) % 7
+      if w >= 1 && w <= 5 && ((h >= 1 && h < 4) || (h >= 6 && h < 10))
+        self.bc = 0xFF8800
       else
-        var h = (e / 3600000) % 24
-        var w = ((e / 86400000) + 4) % 7
-        if w >= 1 && w <= 5 && ((h >= 1 && h < 4) || (h >= 6 && h < 10))
-          self.bc = 0xFF8800
-        else
-          self.bc = 0x00AA33
-        end
+        self.bc = 0x00AA33
       end
     end
 

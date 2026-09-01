@@ -1,9 +1,9 @@
 # @name    Year Progress
 # @desc    Percentage of the current year elapsed, with a progress bar
 # @author  Golevka2001
-# @version 1.0
-# @config  ic    text    "Icon ID"    default="12111"  help="LaMetric icon ID"
+# @version 1.1
 # @config  tint  color  "Bar colour"  default=#FFFFFF
+# @config  ic    text    "Icon ID"    default="12111"  help="LaMetric icon ID"
 
 import string
 

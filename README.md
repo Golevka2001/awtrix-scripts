@@ -16,8 +16,20 @@ Show off your GitHub contributions right on your AWTRIX.
 
 A live heatmap of your GitHub contributions, updating on your AWTRIX — today's pixel turns green while you code.
 
-Heads-up: this app relies on an external worker, a tiny Cloudflare Worker you deploy once with wrangler (needs a free GitHub token and a Cloudflare account).
+Press the select button for an instant refresh.
+
+Heads-up: this app relies on **an external worker**, a tiny Cloudflare Worker you deploy once with wrangler (needs a free GitHub token and a Cloudflare account).
 Setup is a couple of minutes, step by step at <https://github.com/Golevka2001/awtrixng-github-heatmap>
+
+| Setting                          | Value                                                                       |
+| -------------------------------- | --------------------------------------------------------------------------- |
+| Server URL                       | The deployed worker endpoint URL                                            |
+| Username                         | GitHub username                                                             |
+| (Optional) CF Access ID / Secret | Service token for a Cloudflare Access-protected worker; leave empty to skip |
+| Rainbow Months                   | Colour the month markers with a per-month hue; default on                   |
+| Split by Month                   | Separate months with a gap; default off                                     |
+| Show Avatar                      | Render the user's 8x8 avatar in the leftmost columns; default off           |
+| Refresh                          | Refresh interval in minutes                                                 |
 
 ### GitHub Followers — `github-followers.ax`
 
@@ -27,13 +39,18 @@ Setup is a couple of minutes, step by step at <https://github.com/Golevka2001/aw
 
 Your GitHub follower count on the panel.
 
-Setup: works with just a username — it queries `api.github.com/users/<name>`, no key needed. Optionally add a personal access token (github.com → Settings → Developer settings → Personal access tokens) to query the authenticated `/user` endpoint instead.
+Setup: add a personal access token (github.com → Settings → Developer settings → Personal access tokens) to raise the rate limit from 60 to 5 000 requests/hour; the username always picks the account, so it works for any user.
 
 Press the select button for an instant refresh.
 
 Heads-up: without a token GitHub allows 60 requests/hour, so don't set the refresh interval too low. A token is stored in plain text on the clock — use one with minimal scope that you can revoke.
 
-Default icon ID: 71442.
+| Setting          | Value                            |
+| ---------------- | -------------------------------- |
+| Username         | GitHub username                  |
+| (Optional) Token | Personal access token            |
+| Icon ID          | LaMetric icon ID (default 71442) |
+| Refresh          | Refresh interval in minutes      |
 
 ### DeepSeek Balance — `deepseek-balance.ax`
 
@@ -43,9 +60,16 @@ Default icon ID: 71442.
 
 Your remaining DeepSeek API balance, turning red below a threshold you set. A bar along the bottom indicates the peak/off-peak hours: amber is peak, green is off-peak.
 
-Setup: create an API key at <https://platform.deepseek.com> and paste it into settings. The low-balance threshold and the peak bar are settings too.
+Press the select button for an instant refresh.
 
-Default icon ID: 77050.
+Setup: create an API key at <https://platform.deepseek.com> and paste it into settings.
+
+| Setting     | Value                                                                |
+| ----------- | -------------------------------------------------------------------- |
+| API Key     | DeepSeek API key, starts with `sk-`                                  |
+| Low balance | Threshold in CNY below which the number turns red (default 5, min 0) |
+| Icon ID     | LaMetric icon ID (default 77050)                                     |
+| Refresh     | Refresh interval in minutes (default 10, min 1)                      |
 
 ### Bilibili Followers — `bilibili-followers.ax`
 
@@ -57,9 +81,13 @@ Your Bilibili follower count on the panel.
 
 Press the select button for an instant refresh.
 
-Setup: paste your UID into settings — it's the number in your profile URL: `space.bilibili.com/12345` → `12345`. No API key or login needed; the stats endpoint is public.
+Setup: paste your UID into settings — it's the number in your profile URL: `space.bilibili.com/12345` → `12345`.
 
-Default icon ID: 71441.
+| Setting | Value                                              |
+| ------- | -------------------------------------------------- |
+| UID     | Your Bilibili UID (the number in your profile URL) |
+| Icon ID | LaMetric icon ID (default 71441)                   |
+| Refresh | Refresh interval in minutes (min 1)                |
 
 ### Year Progress — `year-progress.ax`
 
@@ -71,7 +99,10 @@ The percentage of the current year elapsed, with a progress bar along the bottom
 
 Setup: none. Optional: bar colour (the track behind it auto-dims to a quarter of whatever you pick).
 
-Default icon ID: 12111.
+| Setting    | Value                                                          |
+| ---------- | -------------------------------------------------------------- |
+| Bar colour | Colour of the filled bar (and its dimmed track); default white |
+| Icon ID    | LaMetric icon ID (default 12111)                               |
 
 ### Air Quality (CN) — `air-quality-cn.ax`
 
@@ -86,6 +117,12 @@ Press the select button for an instant refresh.
 Setup: get a key at <https://tianapi.com> — register, activate the 空气质量指数 (air quality index) interface in your console, then copy your API key into settings. Enter the city name in Chinese (南京, 上海).
 
 Heads-up: the Tianapi AQI interface covers **mainland China only**.
+
+| Setting | Value                                             |
+| ------- | ------------------------------------------------- |
+| API Key | Your tianapi.com API key                          |
+| City    | Chinese city name, e.g. 南京, 上海 (default 北京) |
+| Refresh | Refresh interval in minutes (min 1)               |
 
 The six band icons are fixed IDs (47651–47657), not configurable, and must be installed on your device.
 
@@ -103,7 +140,13 @@ Setup: get a key at <https://tianapi.com> — register, activate the 实时油�
 
 Heads-up: the Tianapi oil-price interface covers **mainland China only**.
 
-Default icon ID: 63850.
+| Setting  | Value                                                 |
+| -------- | ----------------------------------------------------- |
+| API Key  | Your tianapi.com API key                              |
+| Province | Chinese province name, e.g. 江苏, 上海 (default 北京) |
+| Fuel     | Fuel grade: 0 (diesel), 89, 92, 95 or 98 (default 92) |
+| Icon ID  | LaMetric icon ID (default 63850)                      |
+| Refresh  | Refresh interval in minutes (min 1)                   |
 
 ## External Scripts
 
@@ -119,7 +162,18 @@ Fill in the broker address/credentials at the top of the script, then add the cr
 
 Heads-up: `MQTT_PREFIX` must match the device's `mqttPrefix`.
 
-Icons are hardcoded IDs 60550 (download) / 60553 (upload) in the script config.
+| Setting            | Value                                                                  |
+| ------------------ | ---------------------------------------------------------------------- |
+| `IF_LIST`          | Network interfaces to sum counters from (default `apcli0` / `apclix0`) |
+| `MQTT_HOST/PORT`   | Broker address and port (default localhost:1883)                       |
+| `MQTT_PREFIX`      | Must match the device's `mqttPrefix`                                   |
+| `MQTT_USERNAME`    | Broker username; leave empty if none                                   |
+| `MQTT_PASSWORD`    | Broker password; leave empty if none                                   |
+| `LIFETIME_MS`      | How long a pushed reading stays up before going stale (default 15000)  |
+| `LIFETIME_EXPIRY`  | Mark stale readings with a red frame (`mark`) or drop them (`remove`)  |
+| `DOWNLOAD_ICON`    | LaMetric icon ID for the download app (default 60550)                  |
+| `UPLOAD_ICON`      | LaMetric icon ID for the upload app (default 60553)                    |
+| `INTERVAL_SECONDS` | Sampling/publish interval (default 1)                                  |
 
 ## A memory-saving trick: offload TLS to an nginx reverse proxy (OpenWrt / Home Assistant)
 
@@ -127,7 +181,7 @@ Icons are hardcoded IDs 60550 (download) / 60553 (upload) in the script config.
 
 When a script makes an https request, the TLS handshake is one of the largest single memory allocations the device ever makes: the firmware requires **≥ 40 KB of free heap and a ≥ 16 KB contiguous block** before it will even start one, retrying every 4 seconds and giving up after 6 tries. In the log it looks like this:
 
-```
+```plaintext
 script http: heap too tight for TLS (36748 free, 29684 largest) after 6 tries, skipped https://...
 ```
 
