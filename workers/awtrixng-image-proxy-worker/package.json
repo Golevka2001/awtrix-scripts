@@ -1,0 +1,13 @@
+{
+  "name": "awtrixng-image-proxy-worker",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "scripts": {
+    "deploy": "npx wrangler deploy"
+  },
+  "dependencies": {
+    "jpeg-js": "^0.4.4",
+    "upng-js": "^2.1.0"
+  }
+}

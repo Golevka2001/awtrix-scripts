@@ -2,6 +2,9 @@
 
 Apps for the Ulanzi TC001 pixel clock running the [AWTRIX NG](https://github.com/Blueforcer/awtrix-ng) firmware.
 
+> [!IMPORTANT]
+> The **avatar features** need `base64:` icon support, which the stock AWTRIX NG firmware gains once [PR #52](https://github.com/Blueforcer/awtrix-ng/pull/52) is merged and flashed. Until then, either wait for that PR, or use the firmware from the [v1.1.0-base64-prefix release](https://github.com/Golevka2001/awtrix-ng/releases/tag/v1.1.0-base64-prefix). Everything else on this branch runs on any unmodified AWTRIX NG.
+
 ---
 
 ## Scripts
@@ -147,6 +150,27 @@ Heads-up: the Tianapi oil-price interface covers **mainland China only**.
 | Fuel     | Fuel grade: 0 (diesel), 89, 92, 95 or 98 (default 92) |
 | Icon ID  | LaMetric icon ID (default 63850)                      |
 | Refresh  | Refresh interval in minutes (min 1)                   |
+
+## Workers
+
+### Image Proxy Worker — `awtrixng-image-proxy-worker`
+
+The scripts that show an avatar need **two pieces**: an image URL _and_ something to shrink it to the panel's 8x8 grid. That's what this worker does.
+
+It's a tiny Cloudflare Worker: give it any image URL, it fetches the image, box-averages it down to 8x8, blends transparent pixels onto the panel's black background, and returns `{"data":"<base64>","size":8}`. The Berry app then shows it with the `base64:` icon syntax.
+
+There are two ways to call it:
+
+| Method                         | Body / headers                                                            |
+| ------------------------------ | ------------------------------------------------------------------------- |
+| `GET /?url=<image url>`        | Plain convenience for the URL in the query string.                        |
+| `GET /` with an `X-Url` header | Preferred from Berry — avoids URL-encoding the target's own query string. |
+
+Deploy it once with wrangler (needs a free Cloudflare account), then paste the resulting `https://<name>.<account>.workers.dev` URL into the **Worker URL** setting of whichever app is showing an avatar.
+
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/Golevka2001/awtrix-scripts/tree/feat-avatar-icon/workers/awtrixng-image-proxy-worker)
+
+**Cloudflare Access** — if you front the worker with an Access policy, pass the service token credentials through the `client_id` / `client_secret` settings of the affected app; the Berry script sends them as `CF-Access-Client-Id` / `CF-Access-Client-Secret`, which Access validates at the edge.
 
 ## External Scripts
 
