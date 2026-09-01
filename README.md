@@ -48,12 +48,20 @@ Press the select button for an instant refresh.
 
 Heads-up: without a token GitHub allows 60 requests/hour, so don't set the refresh interval too low. A token is stored in plain text on the clock — use one with minimal scope that you can revoke.
 
-| Setting          | Value                            |
-| ---------------- | -------------------------------- |
-| Username         | GitHub username                  |
-| (Optional) Token | Personal access token            |
-| Icon ID          | LaMetric icon ID (default 71442) |
-| Refresh          | Refresh interval in minutes      |
+| Setting                            | Value                                                             |
+| ---------------------------------- | ----------------------------------------------------------------- |
+| Username                           | GitHub username                                                   |
+| (Optional) Token                   | Personal access token; raises the rate limit from 60 to 5000/hour |
+| Use Avatar                         | Show the GitHub avatar as the icon (needs Worker URL)             |
+| (Optional) Worker URL              | Image-proxy worker endpoint; used when Use Avatar is on           |
+| (Optional) CF Access Client ID     | For a Cloudflare Access-protected worker                          |
+| (Optional) CF Access Client Secret | For a Cloudflare Access-protected worker                          |
+| Icon ID                            | LaMetric icon ID (default 71442); fallback when Use Avatar is off |
+| Refresh                            | Refresh interval in minutes                                       |
+
+#### Upgrading the GitHub avatar
+
+Your avatar is a full-color image; the panel shows it as an **8x8 icon** via the [image-proxy worker](#image-proxy-worker). To turn it on, set **Use Avatar** and paste your worker URL into **Worker URL** — the app pulls the avatar URL out of the GitHub response itself, so no further config is needed.
 
 ### DeepSeek Balance — `deepseek-balance.ax`
 

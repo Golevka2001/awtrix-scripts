@@ -1,16 +1,21 @@
 # @name    GitHub Followers
 # @desc    Follower count from the GitHub users API
 # @author  Golevka2001
-# @version 1.1
-# @config  user    text    "Username"  help="Required. github.com/<username>"
-# @config  token   text    "Token"     help="Optional. Raises the rate limit from 60 to 5000/hour"
-# @config  ic      text    "Icon ID"   default="71442"  help="LaMetric icon ID"
-# @config  every   number  "Refresh"   default=60  min=1  unit=min
+# @version 2.0
+# @config  user            text    "Username"  help="Required. github.com/<username>"
+# @config  token           text    "Token"     help="Optional. Raises the rate limit from 60 to 5000/hour"
+# @config  avatar          bool    "Use Avatar"  default=0  help="Show the GitHub avatar as the icon (needs Worker URL)"
+# @config  worker          text    "Worker URL"  help="Image proxy worker endpoint, used when Use Avatar is on"
+# @config  client_id       text    "(Optional) CF Access Client ID"
+# @config  client_secret   text    "(Optional) CF Access Client Secret"
+# @config  ic              text    "Icon ID"   default="71442"  help="LaMetric icon ID, fallback when Use Avatar is off"
+# @config  every           number  "Refresh"   default=60  min=1  unit=min
 
 import string
 
 class GithubFollowers
-  var url, hdr, units, label, tx, tc, ic, err
+  var url, hdr, units, label, tx, tc, ic, def_ic, avatar, worker, err
+  var client_id, client_secret
   # refresh countdown + failure backoff, see due()/failed()/ok()/now()
   var ticks, span, retry, busy
 
@@ -37,7 +42,14 @@ class GithubFollowers
     self.label = self.url == "" ? "SET?" : "..."
     self.tx = 9
     self.tc = 0xFFFFFF
-    self.ic = ""
+    self.def_ic = store.get("ic")
+    self.ic = self.def_ic
+    self.avatar = store.get("avatar") == true
+    self.worker = store.get("worker") == nil ? "" : str(store.get("worker"))
+    var cid = store.get("client_id")
+    self.client_id = cid == nil ? "" : str(cid)
+    var secret = store.get("client_secret")
+    self.client_secret = secret == nil ? "" : str(secret)
     self.ticks = 0
     self.span = 60
     self.retry = 30
@@ -76,7 +88,6 @@ class GithubFollowers
       self.failed()
       return
     end
-    self.ok()
 
     # format here, not in draw() -- draw() must not allocate
     var d = 1
@@ -99,14 +110,55 @@ class GithubFollowers
         self.label = str(round(v)) + self.units[i]
       end
     end
+
+    # Avatar on: pass the avatar_url to the worker and let on_icon() settle the
+    # icon (and the busy flag).  The GitHub response carries avatar_url on both
+    # the authenticated and the username endpoint.
+    if self.avatar && self.worker != ""
+      var au = re.search('"avatar_url": *"([^"]+)"', body)
+      if au != nil
+        shared.set("f", 1)
+        http.get(self.worker, / b2, st2 -> self.on_icon(b2, st2),
+                 {'headers': {'X-Url': str(au[1]),
+                              'CF-Access-Client-Id': self.client_id,
+                              'CF-Access-Client-Secret': self.client_secret,
+                              'User-Agent': "awtrix-github-followers"}})
+        return
+      end
+    end
+    self.ic = self.def_ic
+    self.ok()
+  end
+
+  # Second leg of the avatar fetch: the worker turned the avatar into an 8x8
+  # base64 JPEG.  On any failure fall back to the default icon id.
+  def on_icon(body, status)
+    shared.set("f", 0)
+    if status == 200 && body != nil
+      var m = re.search('"data": *"([^"]*)"', body)
+      if m != nil && m[1] != ""
+        self.ic = "base64:" + m[1]
+        self.ok()
+        return
+      end
+    end
+    self.ic = self.def_ic
+    self.ok()
   end
 
   def loop()
     # url checked first: due() raises busy as a side effect
     if self.url != "" && self.due(store.get("every"))
       shared.set("f", 1)
-      http.get(self.url, / b, st -> self.on_body(b, st),
-               {'headers': self.hdr, 'find': "\"followers\":", 'keep': 24})
+      # With the avatar on, keep the whole response: the GitHub body also
+      # carries avatar_url, which sits well past the followers needle and
+      # would be cut off by a narrow keep window.
+      var opts = {'headers': self.hdr}
+      if !(self.avatar && self.worker != "")
+        opts['find'] = "\"followers\":"
+        opts['keep'] = 24
+      end
+      http.get(self.url, / b, st -> self.on_body(b, st), opts)
     end
 
     # while there is no reading yet, the placeholder reflects the last attempt
@@ -114,7 +166,6 @@ class GithubFollowers
       self.label = self.err ? "?" : "..."
     end
     self.tx = 9 + int((width() - 9 - text_ink_width(self.label)) / 2)
-    self.ic = store.get("ic")
     self.tc = settings.get("textColor")
     if self.tc == nil self.tc = 0xFFFFFF end
     if self.label == "?" self.tc = 0xCC7722 end
