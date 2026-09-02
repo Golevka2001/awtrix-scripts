@@ -4,6 +4,7 @@ Apps for the Ulanzi TC001 pixel clock running the [AWTRIX NG](https://github.com
 
 > [!IMPORTANT]
 > The **avatar features** need `base64:` icon support, which the stock AWTRIX NG firmware gains once [PR #52](https://github.com/Blueforcer/awtrix-ng/pull/52) is merged and flashed. Until then, either wait for that PR, or use the firmware from the [v1.1.0-base64-prefix release](https://github.com/Golevka2001/awtrix-ng/releases/tag/v1.1.0-base64-prefix). Everything else on this branch runs on any unmodified AWTRIX NG.
+> The **[awtrix-ng branch](https://github.com/Golevka2001/awtrix-scripts/tree/awtrix-ng)** is compatible with the stock firmware.
 
 ---
 
@@ -36,7 +37,7 @@ Setup is a couple of minutes, step by step at <https://github.com/Golevka2001/aw
 
 ### GitHub Followers — `github-followers.ax`
 
-![GitHub Followers](README.assets/github-followers.webp)
+![GitHub Followers](README.assets/github-followers.jpeg)
 
 [AWTRIX Flows Link](https://flows.blueforcer.de/flow/o0Phbtd83FWj)
 
