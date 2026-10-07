@@ -1,5 +1,5 @@
-// Offline tests for the pure computation functions.  Run with `node test.mjs`
-// (after `npm install` — the avatar decoders bring jpeg-js and upng-js).
+// Offline tests for the pure computation functions.  Run with `bun run test`
+// (after `bun install` — the avatar decoders bring jpeg-js and upng-js).
 //
 // Imports directly from src/index.js — no drift risk.
 //

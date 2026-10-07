@@ -21,7 +21,7 @@ A live heatmap of your GitHub contributions, updating on your AWTRIX — today's
 
 Press the select button for an instant refresh.
 
-Heads-up: this app relies on **an external worker**, a tiny Cloudflare Worker you deploy once with wrangler (needs a free GitHub token and a Cloudflare account).
+Heads-up: this app relies on **an external worker**, a tiny Cloudflare Worker you deploy once (needs a free GitHub token and a Cloudflare account).
 Setup is a couple of minutes, step by step at <https://github.com/Golevka2001/awtrixng-github-heatmap>
 
 | Setting                          | Value                                                                       |
@@ -182,7 +182,7 @@ There are two ways to call it:
 | `GET /?url=<image url>`        | Plain convenience for the URL in the query string.                        |
 | `GET /` with an `X-Url` header | Preferred from Berry — avoids URL-encoding the target's own query string. |
 
-Deploy it once with wrangler (needs a free Cloudflare account), then paste the resulting `https://<name>.<account>.workers.dev` URL into the **Worker URL** setting of whichever app is showing an avatar.
+Deploy it once with `bun run deploy` (needs [bun](https://bun.sh) and a free Cloudflare account), then paste the resulting `https://<name>.<account>.workers.dev` URL into the **Worker URL** setting of whichever app is showing an avatar. `bun run test` runs the offline assertions; `bun run dev` serves it locally.
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/Golevka2001/awtrix-scripts/tree/awtrix-ng/workers/awtrixng-image-proxy-worker)
 
