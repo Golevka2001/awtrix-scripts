@@ -3,7 +3,7 @@
 Apps for the Ulanzi TC001 pixel clock running the [AWTRIX NG](https://github.com/Blueforcer/awtrix-ng) firmware.
 
 > [!IMPORTANT]
-> The **avatar features** need `base64:` icon support, which the stock AWTRIX NG firmware gains once [PR #52](https://github.com/Blueforcer/awtrix-ng/pull/52) is merged and flashed. Until then, either wait for that PR, or use the firmware from the [v1.1.0-base64-prefix release](https://github.com/Golevka2001/awtrix-ng/releases/tag/v1.1.0-base64-prefix). Everything else on this branch runs on any unmodified AWTRIX NG.
+> The **avatar features** need **AWTRIX NG 1.2.2 or newer**, where an inline icon travels as a data URL (`data:image/jpeg;base64,…`). Earlier firmware had no such support, so on 1.1.x the avatar falls back to the plain icon ID. Everything else on this branch runs on any unmodified AWTRIX NG.
 > The **[awtrix-ng branch](https://github.com/Golevka2001/awtrix-scripts/tree/awtrix-ng)** is compatible with the stock firmware.
 
 ---
@@ -174,7 +174,7 @@ Heads-up: the Tianapi oil-price interface covers **mainland China only**.
 
 The scripts that show an avatar need **two pieces**: an image URL _and_ something to shrink it to the panel's 8x8 grid. That's what this worker does.
 
-It's a tiny Cloudflare Worker: give it any image URL, it fetches the image, box-averages it down to 8x8, blends transparent pixels onto the panel's black background, and returns `{"data":"<base64>","size":8}`. The Berry app then shows it with the `base64:` icon syntax.
+It's a tiny Cloudflare Worker: give it any image URL, it fetches the image, box-averages it down to 8x8, blends transparent pixels onto the panel's black background, and returns `{"data":"<base64>","size":8}`. The Berry app wraps that in the data URL `data:image/jpeg;base64,<data>` and shows it with `icon()`.
 
 There are two ways to call it:
 
