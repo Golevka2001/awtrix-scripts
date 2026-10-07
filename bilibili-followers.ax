@@ -120,7 +120,7 @@ class BilibiliFollowers
     if status == 200 && body != nil
       var m = re.search('"data": *"([^"]*)"', body)
       if m != nil && m[1] != ""
-        self.ic = "base64:" + m[1]
+        self.ic = "data:image/jpeg;base64," + m[1]
         self.ok()
         return
       end

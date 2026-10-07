@@ -5,7 +5,7 @@
 //
 // What is NOT covered here (needs a live URL + wrangler dev):
 //   - The remote fetch, size limit and SSRF-adjacent checks
-//   - End-to-end base64 icon that AWTRIX would actually render
+//   - End-to-end data URL icon that AWTRIX would actually render
 
 import UPNG from "upng-js";
 

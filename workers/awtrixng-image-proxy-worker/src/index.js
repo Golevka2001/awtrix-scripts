@@ -1,5 +1,7 @@
 // AWTRIX NG image proxy: fetch a remote image and return it resized to a
-// single 8x8 icon, base64-encoded for the Berry `icon("base64:<data>", x, y)`.
+// single 8x8 icon, base64-encoded.  The caller wraps it in the data URL
+// `data:image/jpeg;base64,<data>` that Berry's `icon(<icon>, x, y)` takes
+// (AWTRIX NG 1.2.2 or newer).
 //
 // GET /?url=<image url>
 //
