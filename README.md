@@ -3,8 +3,7 @@
 Apps for the Ulanzi TC001 pixel clock running the [AWTRIX NG](https://github.com/Blueforcer/awtrix-ng) firmware.
 
 > [!IMPORTANT]
-> The **avatar features** need **AWTRIX NG 1.2.2 or newer**, where an inline icon travels as a data URL (`data:image/jpeg;base64,…`). Earlier firmware had no such support, so on 1.1.x the avatar falls back to the plain icon ID. Everything else on this branch runs on any unmodified AWTRIX NG.
-> The **[awtrix-ng branch](https://github.com/Golevka2001/awtrix-scripts/tree/awtrix-ng)** is compatible with the stock firmware.
+> The **avatar features** need **AWTRIX NG 1.2.2 or newer**, where an inline icon travels as a data URL (`data:image/jpeg;base64,…`). Earlier firmware had no such support, so on 1.1.x the avatar falls back to the plain icon ID. Everything else here runs on any unmodified AWTRIX NG.
 
 ---
 
@@ -185,7 +184,7 @@ There are two ways to call it:
 
 Deploy it once with wrangler (needs a free Cloudflare account), then paste the resulting `https://<name>.<account>.workers.dev` URL into the **Worker URL** setting of whichever app is showing an avatar.
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/Golevka2001/awtrix-scripts/tree/feat-avatar-icon/workers/awtrixng-image-proxy-worker)
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/Golevka2001/awtrix-scripts/tree/awtrix-ng/workers/awtrixng-image-proxy-worker)
 
 **Cloudflare Access** — if you front the worker with an Access policy, pass the service token credentials through the `client_id` / `client_secret` settings of the affected app; the Berry script sends them as `CF-Access-Client-Id` / `CF-Access-Client-Secret`, which Access validates at the edge.
 
